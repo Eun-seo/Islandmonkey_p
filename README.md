@@ -1,4 +1,4 @@
-# 포트폴리오 제출용 코드
+# 포트폴리오 코드
 ## 섬마을 숭숭이
 1. LoginManager.cs : 로그인 기능 구현 [코드](LoginManager.cs)
 3. IAuthService : 기기에 따른 로그인 구현을 위한 인터페이스  [코드](IAuthService.cs)
