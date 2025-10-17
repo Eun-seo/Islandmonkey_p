@@ -5,11 +5,6 @@ using UnityEngine;
 using Managers;
 using System.Xml.XPath;
 
-public class fUser //Å×½ºÆ®¿ë
-{
-    public string id;
-    public string name;
-}
 public class LoginManager : MonoBehaviour
 {
     private IAuthService signInService;
@@ -23,6 +18,14 @@ public class LoginManager : MonoBehaviour
 #if UNITY_EDITOR
         signInService = new GoogleSignInEditor();
 #endif
+
+    //ì´ˆê¸°í™” ë° ìë™ ë¡œê·¸ì¸ í™•ì¸
+        auth = FirebaseAuth.DefaultInstance;
+        if (auth.CurrentUser != null)
+        {
+            Debug.Log($"ìë™ ë¡œê·¸ì¸: {auth.CurrentUser.UserId}");
+            RefreshTokenAsync(auth.CurrentUser);
+        }
     }
 
     public async void Login()
@@ -30,27 +33,43 @@ public class LoginManager : MonoBehaviour
         try
         {
             string uid = await signInService.SignInAsync();
-            Debug.Log($"·Î±×ÀÎ ¼º°ø, uid : {uid}");
+            Debug.Log($"ë¡œê·¸ì¸ ì„±ê³µ, uid : {uid}");
 
             FirebaseManager fm = Manager.Instance.FirebaseManager;
             fUser user = new fUser();
             user.id = uid;
             user.name = "test";
 
-            Debug.Log("µ¥ÀÌÅÍ ÀúÀå Áß...");
+            Debug.Log("ë°ì´í„° ì €ì¥ ì¤‘...");
 
-            //µ¥ÀÌÅÍ ÀúÀå
+            //ë°ì´í„° ì €ì¥
             string result = await fm.SaveData("user",uid, user);
             Debug.Log(result);
 
-            //µ¥ÀÌÅÍ ºÒ·¯¿À±â
+            //ë°ì´í„° ë¶ˆëŸ¬ì˜¤ê¸°
             string dataResult = await fm.LoadData("user", uid);
             Debug.Log($"data : {dataResult}");
 
         }
         catch(System.Exception ex)
         {
-            Debug.LogError($"·Î±×ÀÎ ½ÇÆĞ: {ex.Message}");
+            Debug.LogError($"ë¡œê·¸ì¸ ì‹¤íŒ¨: {ex.Message}");
         }
+    }
+
+    //ìë™ ì¬ì¸ì¦ í† í° ê°±ì‹ 
+    private void RefreshTokenAsync(FirebaseUser user)
+    {
+        user.TokenAsync(true).ContinueWith(task =>
+        {
+            if (task.IsCanceled || task.IsFaulted)
+            {
+                Debug.LogError("í† í° ê°±ì‹  ì‹¤íŒ¨: " + task.Exception);
+                return;
+            }
+
+            string idToken = task.Result;
+            Debug.Log("í† í° ê°±ì‹  ì™„ë£Œ: " + idToken);
+        });
     }
 }
